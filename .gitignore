@@ -1,2 +1,5 @@
 *.jpg
 !*county_image.jpg
+!*attract_screen.jpg
+!*county-image.jpg
+!*instruction_screen.jpg

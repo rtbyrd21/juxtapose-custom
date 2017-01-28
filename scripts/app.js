@@ -10,19 +10,119 @@ myApp.config(function($stateProvider, $urlRouterProvider, $locationProvider) {
         .state('home', {
             url: '/',
             templateUrl: 'partials/partial-home.html',
-            controller: function ($scope, $stateParams, $rootScope) {
+            controller: function ($scope, $state, $stateParams, $rootScope, $location) {
             	$rootScope.countySelected = false;
             	$rootScope.showNav= false;
+
+            	$rootScope.currentPath = $location.path();
+
+			setTimeout(function(){
+			var a = function(p) {
+				var windowWidth = $(window).width();
+				var windowHeight = $(window).height();
+				var bg;
+				var hit = false;
+				var hitJux = false;
+				var poly = []; //store the vertices for our polygon
+				var polyJux = [];
+
+				p.preload = function() {
+					bg = p.loadImage("images/attract_screen.jpg");	
+					mask = p.loadImage('images/mask_1.png')
+					mask2 = p.loadImage('images/mask_2.png')
+				}
+
+				p.setup = function(){
+
+				  var canvas = p.createCanvas(windowWidth, windowHeight);
+				  // Move the canvas so it's inside our <div id="sketch-holder">.
+				  agricultureVideo = p.createVideo('images/agriculture_video.mp4');
+				  interactVideo = p.createVideo('images/interact_video.mp4');
+				  canvas.parent('sketch-holder');
+				  poly[0] = p.createVector(0,0);     // set X/Y positions
+				  poly[1] = p.createVector(0,p.height);
+				  poly[2] = p.createVector(p.width * .10, p.height);
+				  poly[3] = p.createVector(p.width * .87,0);
+
+				  agricultureVideo.loop();
+				  interactVideo.loop();
+				  polyJux[0] = p.createVector(p.width * .875,0);     // set X/Y positions
+				  polyJux[1] = p.createVector(p.width,0);
+				  polyJux[2] = p.createVector(p.width, p.height);
+				  polyJux[3] = p.createVector(p.width * .105, p.height);
+				  
+				}
+
+				p.draw = function() {
+					// p.background(bg);
+					agricultureVideo.mask(mask);
+					p.image(agricultureVideo,0,0, p.width, p.height);
+					interactVideo.mask(mask2);
+					p.image(interactVideo,0,0, p.width, p.height);
+
+
+					// p.beginShape();
+					// p.noFill();
+				 //    for(i=0; i < poly.length; i++){
+				 //        p.vertex(poly[i].x,poly[i].y);
+				 //    }
+				 //    p.endShape(p.CLOSE);
+
+				 //    p.beginShape();
+				 //    for(i=0; i < polyJux.length; i++){
+				 //        p.vertex(polyJux[i].x,polyJux[i].y);
+				 //    }
+				 //    p.endShape(p.CLOSE);
+
+				    p.ellipse(p.mouseX,p.mouseY,10,10); //put a small ellipse on our point.
+
+				    hit = p.collidePointPoly(p.mouseX,p.mouseY,poly);
+				    hitJux = p.collidePointPoly(p.mouseX,p.mouseY,polyJux); //3rd parameter is an array of vertices.
+				    // console.log(p.mouseX / p.width, p.mouseY/ p.height);
+
+				}
+
+				p.mousePressed = function(){
+					if(hit){
+						console.log('video');
+						p.remove();
+					}
+					if(hitJux){
+						$state.go('instructions');
+						p.remove();
+					}
+				}
+
+			}
+			var myp5 = new p5(a);
+			}, 500);
+
+
+
+
+
             }  
         })
+
+        .state('instructions', {
+            url: '/instructions',
+            templateUrl: 'partials/partial-instructions.html',
+            controller: function ($scope, $stateParams, $rootScope, $state, $location) {
+            	$rootScope.countySelected = false;
+            	$rootScope.showNav= true;
+            	$rootScope.currentPath = $location.path();
+
+            }
+    })
 
         // ABOUT PAGE AND MULTIPLE NAMED VIEWS =================================
         .state('tiles', {
             url: '/tiles',
             templateUrl: 'partials/partial-tiles.html',
-            controller: function ($scope, $stateParams, $rootScope, $state) {
+            controller: function ($scope, $stateParams, $rootScope, $state, $location) {
             	$rootScope.countySelected = false;
             	$rootScope.showNav= true;
+            	$rootScope.currentPath = $location.path();
 
 
 setTimeout(function(){
@@ -33,7 +133,7 @@ setTimeout(function(){
 		var bg;
 		var hitTracker = {};
 		p.preload = function() {
-			bg = p.loadImage("images/county_image.jpg");	
+			bg = p.loadImage("images/county-image.jpg");	
 		}
 
 		p.setup = function(){
@@ -45,7 +145,7 @@ setTimeout(function(){
 		  hit = false;
 		  
 
-		  var myRectParams = [[44,31,5.5,5], [49.5, 44, 5, 6], [41, 50, 8, 7], [36.5, 41, 6.5, 6], [65, 77, 6, 6.5]]
+		  var myRectParams = [[37,48,4.75,4.25], [40, 58, 4, 5], [33.5, 63.5, 6, 5], [30, 56, 5, 4.5], [52.7, 84, 5, 5.5], [35, 88, 4.7, 5.2], [20.5, 49, 4.7, 5.2], [50.5, 29, 4.7, 5.2]]
 		  for(var i=0; i<myRectParams.length; i++){
 		  	 hitTracker[i] = false;
 		  	 myRects[i] = new hitTarget(myRectParams[i][0], myRectParams[i][1], myRectParams[i][2], myRectParams[i][3], i);
@@ -81,6 +181,7 @@ setTimeout(function(){
 				if(hitTracker[index]){
 					if($state.current.name === 'tiles'){
 						$state.go('aerial', {aerialID:index + 1});	
+						p.remove();
 					}
 				}
 			});
@@ -106,9 +207,9 @@ setTimeout(function(){
 			this.display = function(){
 				p.fill(255,255,255,100);
 				// console.log(this.xPos,this.yPos,this.width,this.height);
-				p.rect(this.xPos,this.yPos,this.percWidth,this.percHeight);
+				// p.rect(this.xPos,this.yPos,this.percWidth,this.percHeight);
 				p.fill(0);
-				p.text(index + 1, this.xPos + (this.percWidth/2), this.yPos + (this.percHeight/2));
+				// p.text(index + 1, this.xPos + (this.percWidth/2), this.yPos + (this.percHeight/2));
 			}
 		}
 
@@ -125,33 +226,24 @@ setTimeout(function(){
         .state('aerial', {
             url: '/aerial:aerialID',
             templateUrl: 'partials/partial-view.html',
-            controller: function ($scope, $stateParams, $rootScope) {
+            controller: function ($scope, $stateParams, $rootScope, $window, $location) {
+            	$rootScope.currentPath = $location.path();
             	$rootScope.showNav= true;
             	$rootScope.countySelected = true;
             	$scope.id = $stateParams.aerialID;
             	$rootScope.zoomAmount = 1;
-        //     	slider = new juxtapose.JXSlider('.aerial',
-				    // [
-				    //     {
-				    //         // src: 'images/0'+$stateParams.aerialID+'_archive.jpg',
-				    //         src: 'images/placeholder.png',
-				    //         label: '1941',
-				    //         magnified: 'images/0'+$stateParams.aerialID+'_archive.jpg'
-				    //     },
-				    //     {
-				    //         // src: 'images/0'+$stateParams.aerialID+'_recent.jpg',
-				    //         src: 'images/placeholder.png',
-				    //         label: '2016',
-				    //         magnified: 'images/0'+$stateParams.aerialID+'_recent.jpg'
-				    //     }
-				    // ],
-				    // {
-				    //     animate: true,
-				    //     showLabels: true,
-				    //     showCredits: true,
-				    //     startingPosition: "50%",
-				    //     makeResponsive: true
-				    // });
+            	$rootScope.clickCount = 0;
+            	$(window).on('pageClicked', function(){
+            		$rootScope.clickCount ++;
+            		$rootScope.$apply();
+
+            	})
+
+            	$rootScope.resetClickCount = function(){
+            		$rootScope.clickCount = 0;
+            	}
+
+
 
 
             	setTimeout(function(){
@@ -159,82 +251,11 @@ setTimeout(function(){
 
             		$('#divisor').html("<iframe class='zoomFrame' src='/zoomify/0"+$stateParams.aerialID+"_archive/0"+$stateParams.aerialID+"_archive.html' width='100%' height='100%'>You need a Frames Capable browser to view this content.</iframe> ");
      				$('figure').prepend( "<iframe class='zoomFrame' src='/zoomify/0"+$stateParams.aerialID+"_present/0"+$stateParams.aerialID+"_present.html' width='100%' height='100%'>You need a Frames Capable browser to view this content.</iframe> " );
-     //        		$("#thumb").panzoom({
-     //        			contain: 'invert',
-     //        			 minScale: 1,
-     //        			 $zoomIn: $('#zoom-in'),
-  			// 			$zoomOut: $('#zoom-out')
-  			// 			// transition: false
-     //        		});
 
-     //        		$("#thumbRecent").panzoom({
-     //        			contain: 'invert',
-     //        			 minScale: 1,
-     //        			 $zoomIn: $('#zoom-in'),
-  			// 			$zoomOut: $('#zoom-out')
-  			// 			// transition: false
-
-     //        		});
-
-     //        		var afterImage = $("#thumbRecent");
-     //        		var zoomAmountBefore = 1;
-     //        		var zoomAmountAfter = 1;
-     //        		var imageOverageBefore;
-     //        		var imageOverageAfter;
-
-
-
-     //        		$("#thumb").on('panzoomzoom', function(e, panzoom, scale, opts) {
-					//     setTimeout(function(){
-					//     	zoomAmountBefore = $("#thumb").css('transform').split(",")[3];	
-					//     },500);
-					//     $rootScope.zoomAmount = $("#thumb").css('transform').split(",")[3];
-
-					//     $rootScope.$apply();
-					// });
-
-					// $("#thumbRecent").on('panzoomzoom', function(e, panzoom, scale, opts) {
-
-					//     setTimeout(function(){
-
-					//     	zoomAmountAfter = $("#thumbRecent").css('transform').split(",")[3];	
-					//     	$rootScope.zoomAmount = $("#thumb").css('transform').split(",")[3];
-					//     	$rootScope.$apply();
-
-					//     },500);
-					// });
-
-
-     //        		$("#thumb").on('panzoompan', function(e, panzoom, x, y, afterImage) {
-     //        			imageOverageBefore = $(window).width() - $("#thumb").width();
-     //        			var panAmount = map_range(x, 0, $(window).width() - $("#thumb").width(), 0, 100);
-     //        			$rootScope.$broadcast('panning', {pan:panAmount});
-     //        			$("#thumb").css({'transition': 'none'});
-     //        			$("#thumbRecent").css({'transition': 'none'});
-     //        			// if(imageOverageBefore / 2 <= x){
-					// 	    $("#thumbRecent").css({
-	    // 						'transform': 'matrix('+ zoomAmountBefore +', 0, 0, '+ zoomAmountBefore +', '+ x +', '+ y +')'
-	  		// 				});
-
-					// });
-
-					// $("#thumbRecent").on('panzoompan', function(e, panzoom, x, y, afterImage) {
-					// 	imageOverageAfter = $(window).width() - $("#thumbRecent").width();						
-					// 	    var panAmount = map_range(x, 0, $(window).width() - $("#thumb").width(), 0, 100);
-     //        				$rootScope.$broadcast('panning', {pan:panAmount});
-     //        				$("#thumb").css({'transition': 'none'});
-     //        				$("#thumbRecent").css({'transition': 'none'});
-	  		// 				// if(imageOverageAfter / 2 < x){
-	  		// 					$("#thumb").css({
-	    // 							'transform': 'matrix('+ zoomAmountAfter +', 0, 0, '+ zoomAmountAfter +', '+ x +', '+ y +')'
-	  		// 					});
-
-					// });
 
 					var percentageToIncrease = $(window).height() / $('.aerial').height();
 					$('.aerial').css({
 						height: $('.aerial').height() * percentageToIncrease,
-						// width: $('.aerial').width() * percentageToIncrease
 						width: '100%'
 					});	
 
@@ -261,71 +282,6 @@ setTimeout(function(){
             	}, 1000);
 
 
-
-
-
-
-// setTimeout(function(){
-// var a = function(p) {
-// 	var windowWidth = $(window).width();
-// 	var windowHeight = $(window).height();
-// 	var imageWidth;
-// 	var imageHeight;
-// 	var differenceWidth, differenceHeight;
-// 	var x, y;
-// 	setTimeout(function(){
-// 	imageWidth = $('#thumb').width();
-// 	imageHeight = $('#thumb').height();
-// 	differenceWidth = windowWidth / imageWidth;
-// 	differenceHeight = imageWidth / windowWidth;
-// 	}, 500);
-
-// 	var dimensions = 70;
-// 	p.setup = function(){
-
-// 	  var canvas = p.createCanvas(dimensions, dimensions);
-// 	  x = (windowWidth - p.width) / 2;
-// 	  y = (windowHeight - p.height) / 2;
-
-
-// 	  // Move the canvas so it's inside our <div id="sketch-holder">.
-// 	  canvas.parent('sketch-holder');
-// 	}
-// 	var panAmount = 0;
-// 	p.draw = function() {
-// 	  var aspectRatioWindow = calculateAspectRatioFit(windowWidth, windowHeight, dimensions * .9, dimensions * .9);
-// 	  var aspectRatioImage = calculateAspectRatioFit(imageWidth, imageHeight, (dimensions * .9), dimensions * .9);
-
-
-// 	  p.translate(dimensions/2 - aspectRatioWindow.width /2,dimensions/2 - aspectRatioWindow.height/2);	
-// 	  p.background(255, 255, 255, 150);
-// 	  p.stroke(0);
-// 	  p.fill(255);
-// 	  p.rect(0, 0, aspectRatioWindow.width, aspectRatioWindow.height);
-// 	  p.noStroke();
-// 	  p.fill(109,205,211);
-
-// 	  // (aspectRatioWindow.width - (aspectRatioImage.width * differenceWidth)) / 2
-	  
-// 	  $rootScope.$on('panning', function(e, data){
-// 	  	panAmount = data.pan;
-// 	  });
-// 	  var amountToPan = p.map(panAmount, 0, 100, 0, aspectRatioWindow.width - (aspectRatioImage.width * differenceWidth));
-
-// 	  p.rect(amountToPan + 1, 1, (aspectRatioImage.width * differenceWidth) * .99, (aspectRatioImage.height * differenceHeight) -1);
-// 	}
-
-// 	function calculateAspectRatioFit(srcWidth, srcHeight, maxWidth, maxHeight) {
-
-// 	    var ratio = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
-
-// 	    return { width: srcWidth*ratio, height: srcHeight*ratio };
-// 	 }
-// 	};
-
-// 		var myp5 = new p5(a);
-
-// }, 500);
 
 
 
@@ -390,6 +346,24 @@ myApp.directive('tile', function(){
 // 	};	
 	
 // });
+
+myApp.directive('backButton', ['$window', '$state', function($window, $state) {
+        return {
+            // restrict: 'A',
+            link: function (scope, elem, attrs) {
+                elem.bind('click', function () {
+                	console.log($state);
+                	if($state.current.name == 'tiles'){
+                		$state.go('home');
+                	}else{
+                		$window.history.back();
+                	}
+                    
+                });
+            }
+        };
+    }]);
+
 
 function map_range(value, low1, high1, low2, high2) {
     return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
