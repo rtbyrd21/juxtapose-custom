@@ -94,8 +94,8 @@ L.TileLayer.Zoomify = L.TileLayer.extend({
 	},
 
 	getTileUrl: function (tilePoint) {
-		// return 'http://s3.amazonaws.com/vineyardsandbox/Rob/zoomify-images' + this._url.replace('.','') + 'TileGroup' + this._getTileGroup(tilePoint) + '/' + this._map.getZoom() + '-' + tilePoint.x + '-' + tilePoint.y + '.jpg';
-		return this._url + 'TileGroup' + this._getTileGroup(tilePoint) + '/' + this._map.getZoom() + '-' + tilePoint.x + '-' + tilePoint.y + '.jpg';
+		return 'http://s3.amazonaws.com/vineyardsandbox/Rob/zoomify-images' + this._url.replace('.','') + 'TileGroup' + this._getTileGroup(tilePoint) + '/' + this._map.getZoom() + '-' + tilePoint.x + '-' + tilePoint.y + '.jpg';
+		// return this._url + 'TileGroup' + this._getTileGroup(tilePoint) + '/' + this._map.getZoom() + '-' + tilePoint.x + '-' + tilePoint.y + '.jpg';
 	},
 
 	_getTileGroup: function (tilePoint) {
