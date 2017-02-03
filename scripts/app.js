@@ -18,6 +18,8 @@ myApp.config(function($stateProvider, $urlRouterProvider, $locationProvider) {
 
 			setTimeout(function(){
 			var a = function(p) {
+
+
 				var windowWidth = $(window).width();
 				var windowHeight = $(window).height();
 				var bg;
@@ -38,6 +40,8 @@ myApp.config(function($stateProvider, $urlRouterProvider, $locationProvider) {
 				  // Move the canvas so it's inside our <div id="sketch-holder">.
 				  agricultureVideo = p.createVideo('images/agriculture_video.mp4');
 				  interactVideo = p.createVideo('images/interact_video.mp4');
+				  agricultureVideo.volume(0);
+				  interactVideo.volume(0);
 				  canvas.parent('sketch-holder');
 				  poly[0] = p.createVector(0,0);     // set X/Y positions
 				  poly[1] = p.createVector(0,p.height);
@@ -84,12 +88,16 @@ myApp.config(function($stateProvider, $urlRouterProvider, $locationProvider) {
 
 				p.mousePressed = function(){
 					if(hit){
-						console.log('video');
 						p.remove();
+						$state.go('video').then(function(){
+							location.reload();
+						});
+						
 					}
 					if(hitJux){
-						$state.go('instructions');
 						p.remove();
+						$state.go('instructions');
+						
 					}
 				}
 
@@ -114,6 +122,37 @@ myApp.config(function($stateProvider, $urlRouterProvider, $locationProvider) {
 
             }
     })
+
+
+       .state('video', {
+            url: '/video',
+            templateUrl: 'partials/partial-video.html',
+            controller: function ($scope, $stateParams, $rootScope, $state, $location) {
+            	$rootScope.showNav= true;
+            	$rootScope.currentPath = $location.path();
+
+           setTimeout(function(){
+			var a = function(p) {
+				p.setup = function(){
+				  var canvas = p.createCanvas(p.windowWidth, p.windowHeight);
+				  canvas.parent('sketch-holder');
+				  agricultureVideo = p.createVideo('images/agriculture_video.mp4');
+				  agricultureVideo.volume(0);
+				  agricultureVideo.loop();
+				  
+				}
+
+				p.draw = function() {
+					p.image(agricultureVideo,0,0, p.width, p.height);
+				
+				}
+
+			}
+			var myp5 = new p5(a);
+			}, 500);
+
+            }
+    }) 
 
         // ABOUT PAGE AND MULTIPLE NAMED VIEWS =================================
         .state('tiles', {
@@ -330,29 +369,20 @@ myApp.directive('tile', function(){
 });
 
 
-// myApp.directive('disabledZoom', function($rootScope){
-// 	return {
-// 		link: function(scope, element, attrs){
-// 			$rootScope.$watch('zoomAmount', function(newValue,oldValue){
-// 				console.log(newValue, oldValue);
-// 				if(attrs.disabledZoom == 'out' && newValue <= 1 || attrs.disabledZoom == 'out' && newValue == undefined){
-// 					$(element).attr('disabled', true);
-// 				}else{
-// 					$(element).attr('disabled', false);
-// 				}
-// 			}, true);
 
-// 		}
-// 	};	
-	
-// });
 
 myApp.directive('backButton', ['$window', '$state', function($window, $state) {
         return {
             // restrict: 'A',
             link: function (scope, elem, attrs) {
                 elem.bind('click', function () {
-                	console.log($state);
+
+                	scope.$on('$stateChangeSuccess', function (ev, to, toParams, from, fromParams) {
+					   if(from.name == "video"){
+					   		location.reload();
+					   }
+					});
+
                 	if($state.current.name == 'tiles'){
                 		$state.go('home');
                 	}else{
